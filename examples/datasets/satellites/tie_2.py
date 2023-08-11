@@ -5,16 +5,10 @@ import os
 
 import blenderproc.python.camera.CameraUtility as CameraUtility
 
-# import debugpy
-# debugpy.listen(5678)
-# debugpy.wait_for_client()
-
 parser = argparse.ArgumentParser()
-# parser.add_argument('path', default="resources/satellites/TieInterceptor/TieInterceptor.blend")
-# parser.add_argument('output_dir', default="examples/datasets/satellites/output")
+parser.add_argument('--path', default="resources/satellites/TieInterceptor/TieInterceptor.blend")
+parser.add_argument('--output_dir', default="examples/datasets/satellites/output")
 args = parser.parse_args()
-args.path = "resources/satellites/TieInterceptor/TieInterceptor.blend"
-args.output_dir = "examples/datasets/satellites/output"
 args.bop_dataset_name = "tieInterceptor"
 bproc.init()
 
@@ -36,11 +30,11 @@ CameraUtility.set_intrinsics_from_K_matrix(cam['K'], cam['im_size'][0], cam['im_
 
 light = bproc.types.Light()
 light.set_type("POINT")
-light.set_energy(1000)
+light.set_energy(np.random.uniform(low=10000, high=10000))
 
 bproc.renderer.enable_depth_output(activate_antialiasing=False)
-for j in range(200):  # 200
-    for i in range(3):  # 5
+for j in range(800):  # 200
+    for i in range(5):  # 5
         # define a light and set its location and energy level
         poi = bproc.object.compute_poi(bproc.filter.all_with_type(objs, bproc.types.MeshObject))
         light.set_location(bproc.sampler.sphere(poi, radius=10, mode="SURFACE"))
@@ -53,9 +47,9 @@ for j in range(200):  # 200
         bproc.camera.add_camera_pose(cam2world_matrix, frame=i)
 
     data = bproc.renderer.render()
-
     bproc.writer.write_bop(os.path.join(args.output_dir, 'bop_data_test', args.bop_dataset_name),
                            target_objects = target_obj,
                            depths=data["depth"],
                            colors=data["colors"],
-                           color_file_format="JPEG")
+                           color_file_format="JPEG",
+                           calc_mask_info_coco=False)
